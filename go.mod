@@ -3,13 +3,13 @@ module save-mpeg
 go 1.20
 
 require (
-	github.com/bluenviron/gortsplib/v4 v4.6.0
+	github.com/bluenviron/gortsplib/v3 v3.11.0
 	github.com/bluenviron/mediacommon v1.5.0
 	github.com/pion/rtp v1.8.3
 	go.mongodb.org/mongo-driver v1.12.1
 )
 
-require (	
+require (
 	github.com/asticode/go-astikit v0.30.0 // indirect
 	github.com/asticode/go-astits v1.13.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect

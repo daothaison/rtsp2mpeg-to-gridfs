@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bluenviron/gortsplib/v4"
+	"github.com/bluenviron/gortsplib/v3"
 	"log"
 	"sync"
 
@@ -76,8 +76,8 @@ func (sh *serverHandler) OnDescribe(ctx *gortsplib.ServerHandlerOnDescribeCtx) (
 // called when receiving an ANNOUNCE request.
 func (sh *serverHandler) OnAnnounce(ctx *gortsplib.ServerHandlerOnAnnounceCtx) (*base.Response, error) {
 	log.Printf("announce request")
-	tmp := make([]byte, 1024)
-	sh.hub.BroadcastData(&tmp)
+	//tmp := make([]byte, 1024)
+	//sh.hub.BroadcastData(&tmp)
 
 	sh.mutex.Lock()
 	defer sh.mutex.Unlock()
@@ -141,9 +141,7 @@ func (sh *serverHandler) OnRecord(ctx *gortsplib.ServerHandlerOnRecordCtx) (*bas
 func RunServer() {
 	// configure the server
 	s := &gortsplib.Server{
-		Handler: &serverHandler{
-			hub: hub,
-		},
+		Handler:           &serverHandler{},
 		RTSPAddress:       ":8554",
 		UDPRTPAddress:     ":8000",
 		UDPRTCPAddress:    ":8001",

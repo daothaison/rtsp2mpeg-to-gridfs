@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/bluenviron/gortsplib/v4"
-	"github.com/bluenviron/gortsplib/v4/pkg/base"
-	"github.com/bluenviron/gortsplib/v4/pkg/format"
+	"github.com/bluenviron/gortsplib/v3"
+	"github.com/bluenviron/gortsplib/v3/pkg/formats"
+	"github.com/bluenviron/gortsplib/v3/pkg/url"
+
 	"github.com/grafov/m3u8"
 	"github.com/pion/rtp"
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,7 +26,7 @@ func readStream(streamUrl string) {
 	c := gortsplib.Client{}
 
 	// parse URL
-	u, err := base.ParseURL(streamUrl)
+	u, err := url.Parse(streamUrl)
 	if err != nil {
 		panic(err)
 	}
@@ -38,20 +39,20 @@ func readStream(streamUrl string) {
 	defer c.Close()
 
 	// find available medias
-	desc, _, err := c.Describe(u)
+	medias, baseURL, _, err := c.Describe(u)
 	if err != nil {
 		panic(err)
 	}
 
 	// find the MPEG-1 audio media and format
-	var forma *format.MPEG1Audio
-	medi := desc.FindFormat(&forma)
+	var forma *formats.MPEG1Audio
+	medi := medias.FindFormat(&forma)
 	if medi == nil {
 		panic("media not found")
 	}
 
 	// setup RTP/MPEG-1 audio -> MPEG-1 audio decoder
-	rtpDec, err := forma.CreateDecoder()
+	rtpDec, err := forma.CreateDecoder2()
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +65,7 @@ func readStream(streamUrl string) {
 	}
 
 	// setup a single media
-	_, err = c.Setup(desc.BaseURL, medi, 0, 0)
+	_, err = c.Setup(medi, baseURL, 0, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -98,25 +99,29 @@ func readStream(streamUrl string) {
 		}
 
 		// decode timestamp
-		pts, ok := c.PacketPTS(medi, pkt)
-		if !ok {
-			log.Printf("waiting for timestamp")
-			return
-		}
+		//pts, ok := c.PacketPTS(medi, pkt)
+		//if !ok {
+		//	log.Printf("waiting for timestamp")
+		//	return
+		//}
 
 		// extract access units from RTP packets
-		aus, err := rtpDec.Decode(pkt)
+		aus, pts, err := rtpDec.Decode(pkt)
 		if err != nil {
 			log.Printf("ERR: %v", err)
 			return
+		}
+
+		for _, au := range aus {
+			// encode the access unit into MPEG-TS
+			err = mpegtsMuxer.encode(au, pts)
+			if err != nil {
+				log.Printf("ERR: %v", err)
+				return
+			}
 		}
 
 		// encode access units into MPEG-TS
-		err = mpegtsMuxer.encode(aus, pts)
-		if err != nil {
-			log.Printf("ERR: %v", err)
-			return
-		}
 		log.Printf("Saved TS packet for package at time %v", index)
 	})
 
