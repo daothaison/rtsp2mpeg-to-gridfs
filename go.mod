@@ -4,7 +4,8 @@ go 1.20
 
 require (
 	github.com/bluenviron/gortsplib/v3 v3.11.0
-	github.com/bluenviron/mediacommon v1.5.0
+	github.com/bluenviron/mediacommon v1.5.1
+	github.com/grafov/m3u8 v0.12.0
 	github.com/pion/rtp v1.8.3
 	go.mongodb.org/mongo-driver v1.12.1
 )
@@ -14,7 +15,6 @@ require (
 	github.com/asticode/go-astits v1.13.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.4.0 // indirect
-	github.com/grafov/m3u8 v0.12.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pion/randutil v0.1.0 // indirect
