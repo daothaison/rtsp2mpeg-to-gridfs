@@ -85,6 +85,7 @@ func readStream(streamUrl string) {
 				fmt.Printf("Create playlist err: %s\n", err)
 			}
 			_ = playlist.Append(fmt.Sprintf("stream_%d.ts", index), 10, "")
+			playlist.Close()
 			fileId := findGridFsFile("recordingInfo.Id", "stream_id.m3u8")
 			storeM3u8IntoGridFs(playlist.Encode(), "stream_id.m3u8", fileId)
 
