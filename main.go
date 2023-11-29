@@ -7,7 +7,6 @@ import (
 	"github.com/bluenviron/gortsplib/v3"
 	"github.com/bluenviron/gortsplib/v3/pkg/formats"
 	"github.com/bluenviron/gortsplib/v3/pkg/url"
-
 	"github.com/grafov/m3u8"
 	"github.com/pion/rtp"
 	"go.mongodb.org/mongo-driver/bson"
@@ -77,7 +76,7 @@ func readStream(streamUrl string) {
 	// called when a RTP packet arrives
 	c.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
 		// after startTime + 10 seconds, save the content into a new file
-		if time.Since(startTime) > 3*time.Second {
+		if time.Since(startTime) > 10*time.Second {
 			mpegtsMuxer.close()
 
 			storeIntoGridFs(mpegtsMuxer.GetFile().Name(), fmt.Sprintf("stream_%d.ts", index))

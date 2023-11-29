@@ -24,8 +24,8 @@ type mpegtsMuxer struct {
 
 // newMPEGTSMuxer allocates a mpegtsMuxer.
 func newMPEGTSMuxer(index uint32) (*mpegtsMuxer, error) {
-	//f, err := os.CreateTemp("", fmt.Sprintf("output-%d.ts", index))
-	f, err := os.Create(fmt.Sprintf("output-%d.ts", index))
+	//f, err := os.CreateTemp("", fmt.Sprintf("stream_%d.ts", index))
+	f, err := os.Create(fmt.Sprintf("stream_%d.ts", index))
 	if err != nil {
 		return nil, err
 	}
