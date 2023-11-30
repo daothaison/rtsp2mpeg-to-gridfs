@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -11,7 +10,7 @@ import (
 )
 
 func durationGoToMPEGTS(v time.Duration) int64 {
-	return int64(v.Seconds() * 10000)
+	return int64(v.Seconds() * 90000)
 }
 
 // mpegtsMuxer allows to save a MPEG1-audio stream into a MPEG-TS file.
@@ -29,6 +28,7 @@ func newMPEGTSMuxer(index uint32) (*mpegtsMuxer, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	b := bufio.NewWriter(f)
 
 	track := &mpegts.Track{
@@ -51,18 +51,17 @@ func (e *mpegtsMuxer) GetFile() *os.File {
 
 // close closes all the mpegtsMuxer resources.
 func (e *mpegtsMuxer) close() {
-	e.b.Flush()
 	e.f.Close()
+	e.b.Flush()
 }
 
 // encode encodes MPEG-1 audio access units into MPEG-TS.
-func (e *mpegtsMuxer) encode(au []byte, pts time.Duration) error {
+func (e *mpegtsMuxer) encode(au [][]byte, pts time.Duration) error {
 	// encode into MPEG-TS
-	err := e.w.WriteMPEG1Audio(e.track, durationGoToMPEGTS(pts), [][]byte{au})
+	err := e.w.WriteMPEG1Audio(e.track, durationGoToMPEGTS(pts), au)
 	if err != nil {
 		return err
 	}
 
-	log.Println("wrote TS packet")
 	return nil
 }

@@ -73,38 +73,30 @@ func readStream(streamUrl string) {
 	playlist, err := m3u8.NewMediaPlaylist(0, 100000000)
 
 	startTime := time.Now()
+
 	// called when a RTP packet arrives
 	c.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
-		// after startTime + 10 seconds, save the content into a new file
 		if time.Since(startTime) > 10*time.Second {
 			mpegtsMuxer.close()
+			if err != nil {
+				panic(err)
+			}
+			filename := mpegtsMuxer.GetFile().Name()
 
-			storeIntoGridFs(mpegtsMuxer.GetFile().Name(), fmt.Sprintf("stream_%d.ts", index))
+			storeIntoGridFs(filename, fmt.Sprintf("stream_%d.ts", index))
 
 			if err != nil {
 				fmt.Printf("Create playlist err: %s\n", err)
 			}
-			_ = playlist.Append(fmt.Sprintf("stream_%d.ts", index), 10, "")
+			_ = playlist.Append(fmt.Sprintf("stream_%d.ts", index), time.Since(startTime).Seconds(), "")
 			playlist.Close()
 			fileId := findGridFsFile("recordingInfo.Id", "stream_id.m3u8")
 			storeM3u8IntoGridFs(playlist.Encode(), "stream_id.m3u8", fileId)
 
 			index++
 			startTime = time.Now()
-
 			mpegtsMuxer, err = newMPEGTSMuxer(index)
-			if err != nil {
-				panic(err)
-			}
 		}
-
-		// decode timestamp
-		//pts, ok := c.PacketPTS(medi, pkt)
-		//if !ok {
-		//	log.Printf("waiting for timestamp")
-		//	return
-		//}
-
 		// extract access units from RTP packets
 		aus, pts, err := rtpDec.Decode(pkt)
 		if err != nil {
@@ -112,17 +104,14 @@ func readStream(streamUrl string) {
 			return
 		}
 
-		for _, au := range aus {
-			// encode the access unit into MPEG-TS
-			err = mpegtsMuxer.encode(au, pts)
-			if err != nil {
-				log.Printf("ERR: %v", err)
-				return
-			}
+		// encode the access unit into MPEG-TS
+		err = mpegtsMuxer.encode(aus, pts)
+		if err != nil {
+			log.Printf("ERR: %v", err)
+			return
 		}
 
-		// encode access units into MPEG-TS
-		log.Printf("Saved TS packet for package at time %v", index)
+		log.Printf("Saved TS packet for package at time %v, duration: %v", index, pts)
 	})
 
 	// start playing
@@ -182,7 +171,6 @@ func storeIntoGridFs(fileTs string, savedFilename string) {
 		log.Printf("Error writing to GridFS: %s\n", err)
 		return
 	}
-
 	fmt.Printf("File uploaded to GridFS for stream ID: %s, file id: %s \n", "recordingInfo.Id", uploadStream.FileID)
 }
 
